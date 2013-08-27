@@ -24,7 +24,7 @@ my $status = EXIT_UNKNOWN;
 #parse cmd opts
 my %opts;
 getopts('vU:t:d:u:p:r:', \%opts);
-$opts{t} = 5 unless (defined $opts{t});
+$opts{t} = 60 unless (defined $opts{t});
 if (not (defined $opts{U}) ) {
         print "ERROR: INVALID USAGE\n";
         HELP_MESSAGE();
