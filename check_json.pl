@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use JSON 'decode_json';
 
 my $plugin_name = "Nagios check_http_json";
-my $VERSION = "1.01";
+my $VERSION = "1.02";
 
 # getopt module config
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
@@ -23,7 +23,7 @@ my $status = EXIT_UNKNOWN;
 
 #parse cmd opts
 my %opts;
-getopts('vU:t:d:', \%opts);
+getopts('vU:t:d:u:p:r:', \%opts);
 $opts{t} = 5 unless (defined $opts{t});
 if (not (defined $opts{U}) ) {
         print "ERROR: INVALID USAGE\n";
@@ -37,6 +37,18 @@ $ua->agent('Redirect Bot ' . $VERSION);
 $ua->protocols_allowed( [ 'http', 'https'] );
 $ua->parse_head(0);
 $ua->timeout($opts{t});
+
+if (defined($opts{u}) and defined($opts{p}) and defined($opts{r}))
+{
+    # This regex is kind of rough.  I'm extracting the hostname:port
+    # portion of the URL
+    my ($netloc) = $opts{U} =~ m#https?://([^/]*)/#;
+    if ($netloc !~ /:\d+$/) {
+        $netloc .= ':80';
+    }
+
+    $ua->credentials($netloc, $opts{r}, $opts{u}, $opts{p});
+}
 
 my $response = $ua->get($opts{U});
 
@@ -111,6 +123,11 @@ sub HELP_MESSAGE
         -U          URL to retrieve (http or https)
         -d          absolute path to data file containing hash to find with JSON response (optional)
         -t          Timeout in seconds to wait for the URL to load (default 60)
+        -u          username
+        -p          password
+        -r          HTTP auth realm
+                    Note: -u, -p and -r must all be present if any are
+                    used
 
 EOHELP
 ;
